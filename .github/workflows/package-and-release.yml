@@ -5,6 +5,9 @@ on:
     branches:
       - main  # 或者其他你的默认分支，如master
 
+permissions:
+  contents: write
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
@@ -30,8 +33,28 @@ jobs:
           chmod +x ./package.sh
           chmod +x ./run.sh
       
+      - name: Check directory structure
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+          echo "Creating key directories:"
+          mkdir -p target
+          mkdir -p dist
+          mkdir -p target/hdfs-client-1.0.0
+          chmod -R 755 target
+          chmod -R 755 dist
+          echo "Directory structure after creation:"
+          ls -la
+          ls -la target
+      
       - name: Build and package
-        run: ./package.sh
+        run: |
+          echo "Starting package process..."
+          ./package.sh
+          echo "Package process completed."
+          echo "Checking dist directory:"
+          ls -la dist/
         
       - name: Get current date
         id: date
@@ -45,14 +68,27 @@ jobs:
           echo "package_name=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "artifact=${PACKAGE_NAME}-${VERSION}.tar.gz" >> $GITHUB_OUTPUT
+          echo "Checking if file exists:"
+          ls -la dist/
+          if [ -f "dist/${PACKAGE_NAME}-${VERSION}.tar.gz" ]; then
+            echo "Package file exists and is ready for upload"
+          else
+            echo "ERROR: Package file not found!"
+            exit 1
+          fi
       
-      - name: Update Release Asset
-        id: upload-release-asset
-        uses: svenstaro/upload-release-action@v2
+      - name: Create release if not exists
+        id: create_release
+        uses: softprops/action-gh-release@v1
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/${{ steps.package-info.outputs.artifact }}
-          asset_name: ${{ steps.package-info.outputs.artifact }}
-          tag: hdfs-client-java-dist
-          overwrite: true
-          body: "HDFS Client Distribution Package - Updated on ${{ steps.date.outputs.date }}" 
+          name: HDFS Client Java Distribution
+          tag_name: hdfs-client-java-dist
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+          body: |
+            HDFS Client Distribution Package - Updated on ${{ steps.date.outputs.date }}
+            
+            This is an automatically updated release containing the latest build of the HDFS client.
+          files: |
+            dist/${{ steps.package-info.outputs.artifact }} 

@@ -14,7 +14,10 @@ DIST_DIR="dist"
 
 # Create directories if they don't exist
 mkdir -p ${DIST_DIR}
-mkdir -p ${TARGET_DIR}/${PACKAGE_DIR}
+mkdir -p "${TARGET_DIR}/${PACKAGE_DIR}"
+
+echo "Created package directory: ${TARGET_DIR}/${PACKAGE_DIR}"
+ls -la "${TARGET_DIR}"
 
 # Build the project if the JAR doesn't exist
 if [ ! -f "${TARGET_DIR}/${PACKAGE_NAME}-${VERSION}.jar" ]; then
@@ -29,6 +32,8 @@ echo "Copying files to package directory..."
 JAR_FILE="${TARGET_DIR}/${PACKAGE_NAME}-${VERSION}.jar"
 if [ -f "${JAR_FILE}" ]; then
     echo "Using JAR file: ${JAR_FILE}"
+    # Ensure the target directory exists
+    mkdir -p "${TARGET_DIR}/${PACKAGE_DIR}"
     cp "${JAR_FILE}" "${TARGET_DIR}/${PACKAGE_DIR}/"
 else
     echo "Looking for alternative JAR files..."
@@ -37,6 +42,8 @@ else
     
     if [ -n "${FOUND_JAR}" ]; then
         echo "Found JAR file: ${FOUND_JAR}"
+        # Ensure the target directory exists
+        mkdir -p "${TARGET_DIR}/${PACKAGE_DIR}"
         cp "${FOUND_JAR}" "${TARGET_DIR}/${PACKAGE_DIR}/${PACKAGE_NAME}-${VERSION}.jar"
     else
         echo "Error: No JAR file found in the target directory."
@@ -44,12 +51,16 @@ else
     fi
 fi
 
+# Ensure the package directory exists before copying other files
+mkdir -p "${TARGET_DIR}/${PACKAGE_DIR}"
+
 # Copy other necessary files
 cp run.sh "${TARGET_DIR}/${PACKAGE_DIR}/"
 
 # Ensure conf directory exists
 if [ -d "conf" ]; then
-    cp -r conf "${TARGET_DIR}/${PACKAGE_DIR}/"
+    mkdir -p "${TARGET_DIR}/${PACKAGE_DIR}/conf"
+    cp -r conf/* "${TARGET_DIR}/${PACKAGE_DIR}/conf/"
 else
     echo "Warning: conf directory not found, creating an empty one"
     mkdir -p "${TARGET_DIR}/${PACKAGE_DIR}/conf"
@@ -63,6 +74,10 @@ fi
 if [ -f "LICENSE" ]; then
     cp LICENSE "${TARGET_DIR}/${PACKAGE_DIR}/"
 fi
+
+# List the contents of the package directory to verify
+echo "Contents of ${TARGET_DIR}/${PACKAGE_DIR}:"
+ls -la "${TARGET_DIR}/${PACKAGE_DIR}"
 
 # Creating the distribution package
 echo "Creating distribution package..."
