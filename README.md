@@ -97,3 +97,4 @@ Ensure your Hadoop cluster is running and accessible from the machine where you'
 - `sh run.sh hdfs://hdfs-cluster list hdfs://hdfs-cluster/tmp/`
 - `sh run.sh hdfs://hdfs-cluster write hdfs://hdfs-cluster/tmp/test1.txt "test123"`
 - `sh run.sh hdfs://hdfs-cluster read hdfs://hdfs-cluster/tmp/test1.txt`
+
