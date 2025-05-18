@@ -29,6 +29,13 @@ This will create an executable JAR file with all dependencies included.
 
 ## Usage
 
+### Configuration
+Put core-site.xml and hdfs-site.xml in conf/ (Optional).
+
+Can add more config in conf/client.conf, it will overwrite config in xml file.
+
+### Using the run script
+
 Run the application using the following command:
 
 ```bash
@@ -98,3 +105,20 @@ Ensure your Hadoop cluster is running and accessible from the machine where you'
 - `sh run.sh hdfs://hdfs-cluster write hdfs://hdfs-cluster/tmp/test1.txt "test123"`
 - `sh run.sh hdfs://hdfs-cluster read hdfs://hdfs-cluster/tmp/test1.txt`
 
+### Kerberos & HDFS HA
+
+client.conf:
+
+```
+hadoop.kerberos.krb5.conf=/path/to/krb5.conf
+hadoop.security.authentication=kerberos
+hadoop.kerberos.keytab=/path/to/hdfs.keytab
+hadoop.kerberos.principal=your_hdfs_principal
+
+dfs.nameservices=hdfs-cluster
+dfs.ha.namenodes.hdfs-cluster=nn1,nn2,nn3
+dfs.namenode.rpc-address.hdfs-cluster.nn1=node1:8020
+dfs.namenode.rpc-address.hdfs-cluster.nn2=node1:8020
+dfs.namenode.rpc-address.hdfs-cluster.nn3=node1:8020
+dfs.client.failover.proxy.provider.hdfs-cluster=org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider
+```
