@@ -25,6 +25,8 @@ public class HdfsClient implements AutoCloseable {
     private static final String KERBEROS_KEYTAB_PROPERTY = "hadoop.kerberos.keytab";
     private static final String KERBEROS_PRINCIPAL_PROPERTY = "hadoop.kerberos.principal";
     private static final String HADOOP_SECURITY_AUTHENTICATION = "hadoop.security.authentication";
+    private static final String KERBEROS_KRB5_CONF_PROPERTY = "hadoop.kerberos.krb5.conf";
+    private static final String DEFAULT_KRB5_CONF = "/etc/krb5.conf";
     
     // Socket timeout configuration properties
     private static final String SOCKET_TIMEOUT = "dfs.client.socket-timeout";
@@ -105,6 +107,19 @@ public class HdfsClient implements AutoCloseable {
                 System.out.println("Setting up Kerberos authentication:");
                 System.out.println("  Principal: " + principal);
                 System.out.println("  Keytab: " + keytabPath);
+                
+                // Check for custom krb5.conf path
+                String krb5ConfPath = clientProperties.getProperty(KERBEROS_KRB5_CONF_PROPERTY, DEFAULT_KRB5_CONF);
+                System.out.println("  Using krb5.conf: " + krb5ConfPath);
+                
+                // Set system property for custom krb5.conf
+                File krb5ConfFile = new File(krb5ConfPath);
+                if (krb5ConfFile.exists() && krb5ConfFile.isFile()) {
+                    System.setProperty("java.security.krb5.conf", krb5ConfPath);
+                    System.out.println("  Set java.security.krb5.conf system property to: " + krb5ConfPath);
+                } else {
+                    System.out.println("  Warning: krb5.conf file not found at: " + krb5ConfPath + ", using default path");
+                }
                 
                 // Ensure keytab file exists
                 File keytabFile = new File(keytabPath);
