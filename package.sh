@@ -6,7 +6,7 @@
 set -e
 
 # Define variables
-PACKAGE_NAME="hdfs-client"
+PACKAGE_NAME="hdfs-client-java"
 VERSION="1.0.0"
 HADOOP_VERSION=""
 
