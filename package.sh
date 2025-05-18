@@ -8,9 +8,6 @@ set -e
 # Define variables
 PACKAGE_NAME="hdfs-client"
 VERSION="1.0.0"
-PACKAGE_DIR="${PACKAGE_NAME}-${VERSION}"
-TARGET_DIR="target"
-DIST_DIR="dist"
 HADOOP_VERSION=""
 
 # Parse command line arguments
@@ -28,6 +25,18 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Set default Hadoop version if not specified
+if [[ -z "${HADOOP_VERSION}" ]]; then
+    # Extract default Hadoop version from pom.xml
+    DEFAULT_HADOOP_VERSION=$(grep -o '<hadoop\.version>[^<]*</hadoop\.version>' pom.xml | sed 's/<hadoop\.version>\(.*\)<\/hadoop\.version>/\1/')
+    HADOOP_VERSION="${DEFAULT_HADOOP_VERSION}"
+fi
+
+# Create package directory name with Hadoop version
+PACKAGE_DIR="${PACKAGE_NAME}-${VERSION}-hadoop-${HADOOP_VERSION}"
+TARGET_DIR="target"
+DIST_DIR="dist"
+
 # Create directories if they don't exist
 mkdir -p ${DIST_DIR}
 mkdir -p "${TARGET_DIR}/${PACKAGE_DIR}"
@@ -35,15 +44,13 @@ mkdir -p "${TARGET_DIR}/${PACKAGE_DIR}"
 echo "Created package directory: ${TARGET_DIR}/${PACKAGE_DIR}"
 ls -la "${TARGET_DIR}"
 
-# Build the project if the JAR doesn't exist
-if [ ! -f "${TARGET_DIR}/${PACKAGE_NAME}-${VERSION}.jar" ]; then
-    echo "Building project..."
-    if [[ -n "${HADOOP_VERSION}" ]]; then
-        echo "Using Hadoop version: ${HADOOP_VERSION}"
-        ./build.sh --hadoop-version "${HADOOP_VERSION}"
-    else
-        ./build.sh
-    fi
+# Always build the project
+echo "Building project..."
+if [[ -n "${HADOOP_VERSION}" ]]; then
+    echo "Using Hadoop version: ${HADOOP_VERSION}"
+    ./build.sh --hadoop-version "${HADOOP_VERSION}"
+else
+    ./build.sh
 fi
 
 # Copy necessary files to the package directory
@@ -75,8 +82,9 @@ fi
 # Ensure the package directory exists before copying other files
 mkdir -p "${TARGET_DIR}/${PACKAGE_DIR}"
 
-# Copy other necessary files
-cp run.sh "${TARGET_DIR}/${PACKAGE_DIR}/"
+# Copy and update run.sh to include Hadoop version information
+cp run.sh "${TARGET_DIR}/${PACKAGE_DIR}/run.sh"
+sed -i.bak "s/^# HDFS Client Run Script/# HDFS Client Run Script (Hadoop ${HADOOP_VERSION})/" "${TARGET_DIR}/${PACKAGE_DIR}/run.sh" && rm "${TARGET_DIR}/${PACKAGE_DIR}/run.sh.bak" || true
 
 # Ensure conf directory exists
 if [ -d "conf" ]; then
@@ -103,15 +111,15 @@ ls -la "${TARGET_DIR}/${PACKAGE_DIR}"
 # Creating the distribution package
 echo "Creating distribution package..."
 cd ${TARGET_DIR}
-tar -czf ../dist/${PACKAGE_NAME}-${VERSION}.tar.gz ${PACKAGE_DIR}
+tar -czf "../${DIST_DIR}/${PACKAGE_DIR}.tar.gz" ${PACKAGE_DIR}
 cd ..
 
 # Verify the package
-echo "Package created: dist/${PACKAGE_NAME}-${VERSION}.tar.gz"
+echo "Package created: ${DIST_DIR}/${PACKAGE_DIR}.tar.gz"
 echo "Package contents:"
-tar -tf dist/${PACKAGE_NAME}-${VERSION}.tar.gz
+tar -tf "${DIST_DIR}/${PACKAGE_DIR}.tar.gz"
 
 echo "Packaging completed successfully!"
 echo "To deploy, copy the package to the target server and extract it using:"
-echo "  tar -xzf ${PACKAGE_NAME}-${VERSION}.tar.gz"
+echo "  tar -xzf ${PACKAGE_DIR}.tar.gz"
 echo "Then use the run.sh script to execute the application." 

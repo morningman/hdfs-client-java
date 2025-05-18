@@ -41,6 +41,8 @@ You can also specify the Hadoop version when creating a package:
 ./package.sh --hadoop-version 3.4.1
 ```
 
+This will create a package with the name format `hdfs-client-1.0.0-hadoop-3.4.1.tar.gz`.
+
 ## Usage
 
 ### Configuration

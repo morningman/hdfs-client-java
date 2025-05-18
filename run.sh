@@ -7,7 +7,7 @@ set -e
 
 # Define variables
 PROJECT_NAME="hdfs-client"
-VERSION="1.0-SNAPSHOT"
+VERSION="1.0.0"
 JAR_NAME="${PROJECT_NAME}-${VERSION}.jar"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONF_DIR="${SCRIPT_DIR}/conf"
@@ -39,8 +39,18 @@ if [ -f "${SCRIPT_DIR}/target/${JAR_NAME}" ]; then
 elif [ -f "${SCRIPT_DIR}/${JAR_NAME}" ]; then
     JAR_PATH="${SCRIPT_DIR}/${JAR_NAME}"
 else
-    echo "JAR file not found. Please build the project first using build.sh."
-    exit 1
+    # Try with alternate version names
+    ALT_VERSION="1.0-SNAPSHOT"
+    ALT_JAR_NAME="${PROJECT_NAME}-${ALT_VERSION}.jar"
+    
+    if [ -f "${SCRIPT_DIR}/target/${ALT_JAR_NAME}" ]; then
+        JAR_PATH="${SCRIPT_DIR}/target/${ALT_JAR_NAME}"
+    elif [ -f "${SCRIPT_DIR}/${ALT_JAR_NAME}" ]; then
+        JAR_PATH="${SCRIPT_DIR}/${ALT_JAR_NAME}"
+    else
+        echo "JAR file not found. Please build the project first using build.sh."
+        exit 1
+    fi
 fi
 
 # Set environment variables
