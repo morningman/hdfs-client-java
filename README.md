@@ -15,7 +15,7 @@ A simple Java client application for interacting with HDFS (Hadoop Distributed F
 
 - Java 8
 - Maven 3.x
-- Hadoop 3.3.6
+- Hadoop 3.3.6 (default, can be configured during build)
 
 ## Building the Project
 
@@ -26,6 +26,14 @@ Build the project using the following command:
 ```
 
 This will create an executable JAR file with all dependencies included.
+
+### Custom Hadoop Version
+
+By default, the project uses Hadoop version 3.3.6. You can specify a different Hadoop version during build:
+
+```bash
+./build.sh --hadoop-version 3.4.1
+```
 
 ## Usage
 

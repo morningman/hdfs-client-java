@@ -10,6 +10,22 @@ PROJECT_NAME="hdfs-client"
 VERSION="1.0.0"
 JAR_NAME="${PROJECT_NAME}-${VERSION}.jar"
 TARGET_DIR="target"
+HADOOP_VERSION=""
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        --hadoop-version)
+        HADOOP_VERSION="$2"
+        shift
+        shift
+        ;;
+        *)
+        shift
+        ;;
+    esac
+done
 
 # Create target directory if it doesn't exist
 mkdir -p ${TARGET_DIR}
@@ -22,8 +38,14 @@ fi
 
 echo "Building ${PROJECT_NAME} ${VERSION}..."
 
-# Run Maven build
-mvn clean package -DskipTests
+# Run Maven build with optional hadoop version
+if [[ -n "${HADOOP_VERSION}" ]]; then
+    echo "Using Hadoop version: ${HADOOP_VERSION}"
+    mvn clean package -DskipTests -Dhadoop.version=${HADOOP_VERSION}
+else
+    echo "Using default Hadoop version from pom.xml"
+    mvn clean package -DskipTests
+fi
 
 # Check if the build was successful
 if [ $? -eq 0 ]; then
