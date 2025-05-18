@@ -35,6 +35,12 @@ By default, the project uses Hadoop version 3.3.6. You can specify a different H
 ./build.sh --hadoop-version 3.4.1
 ```
 
+You can also specify the Hadoop version when creating a package:
+
+```bash
+./package.sh --hadoop-version 3.4.1
+```
+
 ## Usage
 
 ### Configuration

@@ -11,6 +11,22 @@ VERSION="1.0.0"
 PACKAGE_DIR="${PACKAGE_NAME}-${VERSION}"
 TARGET_DIR="target"
 DIST_DIR="dist"
+HADOOP_VERSION=""
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        --hadoop-version)
+        HADOOP_VERSION="$2"
+        shift
+        shift
+        ;;
+        *)
+        shift
+        ;;
+    esac
+done
 
 # Create directories if they don't exist
 mkdir -p ${DIST_DIR}
@@ -22,7 +38,12 @@ ls -la "${TARGET_DIR}"
 # Build the project if the JAR doesn't exist
 if [ ! -f "${TARGET_DIR}/${PACKAGE_NAME}-${VERSION}.jar" ]; then
     echo "Building project..."
-    ./build.sh
+    if [[ -n "${HADOOP_VERSION}" ]]; then
+        echo "Using Hadoop version: ${HADOOP_VERSION}"
+        ./build.sh --hadoop-version "${HADOOP_VERSION}"
+    else
+        ./build.sh
+    fi
 fi
 
 # Copy necessary files to the package directory
