@@ -25,7 +25,7 @@ Build the project using the following command:
 ./build.sh
 ```
 
-This will create an executable JAR file with all dependencies included.
+This will create an executable fat JAR file with all dependencies included, allowing it to run independently without external libraries.
 
 ### Custom Hadoop Version
 

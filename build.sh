@@ -49,9 +49,23 @@ fi
 
 # Check if the build was successful
 if [ $? -eq 0 ]; then
+    # Verify fat jar has been created
+    FAT_JAR="${TARGET_DIR}/${PROJECT_NAME}-${VERSION}.jar"
+    if [ -f "${FAT_JAR}" ]; then
+        JAR_SIZE=$(du -k "${FAT_JAR}" | cut -f1)
+        echo "Fat JAR size: ${JAR_SIZE}KB"
+        
+        if [ "${JAR_SIZE}" -lt 1000 ]; then
+            echo "Warning: JAR file seems too small for a fat JAR (${JAR_SIZE}KB)"
+            echo "It might not include all dependencies. Please check pom.xml configuration."
+        else
+            echo "Fat JAR was created successfully."
+        fi
+    fi
+    
     # Copy the JAR to the target directory with the right name
     echo "Renaming JAR file to ${JAR_NAME}..."
-    find target -name "*.jar" -not -name "*sources*" -not -name "*javadoc*" -not -name "*tests*" \
+    find target -name "*.jar" -not -name "*sources*" -not -name "*javadoc*" -not -name "*tests*" -not -name "original-*.jar" \
         -exec cp {} ${TARGET_DIR}/${JAR_NAME} \;
     
     echo "Build completed successfully!"
