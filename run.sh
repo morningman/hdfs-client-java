@@ -6,7 +6,7 @@
 set -e
 
 # Define variables
-PROJECT_NAME="hdfs-client"
+PROJECT_NAME="hdfs-client-java"
 VERSION="1.0.0"
 JAR_NAME="${PROJECT_NAME}-${VERSION}.jar"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
