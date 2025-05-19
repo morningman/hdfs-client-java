@@ -6,7 +6,7 @@
 set -e
 
 # Define variables
-PROJECT_NAME="hdfs-client"
+PROJECT_NAME="hdfs-client-java"
 VERSION="1.0.0"
 JAR_NAME="${PROJECT_NAME}-${VERSION}.jar"
 TARGET_DIR="target"
@@ -62,11 +62,6 @@ if [ $? -eq 0 ]; then
             echo "Fat JAR was created successfully."
         fi
     fi
-    
-    # Copy the JAR to the target directory with the right name
-    echo "Renaming JAR file to ${JAR_NAME}..."
-    find target -name "*.jar" -not -name "*sources*" -not -name "*javadoc*" -not -name "*tests*" -not -name "original-*.jar" \
-        -exec cp {} ${TARGET_DIR}/${JAR_NAME} \;
     
     echo "Build completed successfully!"
     echo "JAR file created: ${TARGET_DIR}/${JAR_NAME}"
