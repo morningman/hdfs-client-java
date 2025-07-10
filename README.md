@@ -98,6 +98,38 @@ The last parameter `true` indicates whether to recursively delete directories.
 ./run.sh hdfs://localhost:9000 exists /path/to/check
 ```
 
+7. Benchmark read performance:
+   You can use the `benchmarkRead` command to test the read performance of a file or directory using multiple threads.
+
+### 🔧 Usage
+
+```bash
+./run.sh benchmarkRead <path> <threads>
+```
+
+### 📌 Parameters
+
+- **`<path>`**:  
+  Path to the file or directory to read.  
+  Supports both local and remote file systems (e.g., HDFS, S3).
+
+- **`<threads>`**:  
+  Number of threads to use for concurrent reading.  
+  Each thread will read all the files independently.
+
+> **Note**:
+> - If `<path>` is a file, each thread will repeatedly read the same file.
+> - If `<path>` is a directory, each thread will read all files in that directory.
+
+### 📎 Example
+
+Read the file `/path/to/file.orc` using 20 threads:
+
+```bash
+./run.sh benchmarkRead hdfs://localhost:9000/path/to/file.orc 20
+```
+
+
 ## Project Structure
 
 - `src/main/java/com/example/hdfs/HdfsClient.java` - Utility class for HDFS operations
@@ -120,6 +152,7 @@ Ensure your Hadoop cluster is running and accessible from the machine where you'
 - `sh run.sh hdfs://hdfs-cluster list hdfs://hdfs-cluster/tmp/`
 - `sh run.sh hdfs://hdfs-cluster write hdfs://hdfs-cluster/tmp/test1.txt "test123"`
 - `sh run.sh hdfs://hdfs-cluster read hdfs://hdfs-cluster/tmp/test1.txt`
+- `run.sh hdfs://hdfs-cluster  benchmarkRead hdfs://hdfs-cluster/tmp/tmp.orc 20`
 
 ### Kerberos & HDFS HA
 

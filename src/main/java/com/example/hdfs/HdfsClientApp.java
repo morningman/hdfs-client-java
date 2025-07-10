@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class HdfsClientApp {
-
+    
     public static void main(String[] args) {
         if (args.length < 1) {
             System.err.println("Usage: HdfsClientApp <hdfs-uri> [operation] [params...]");
@@ -19,6 +19,7 @@ public class HdfsClientApp {
             System.err.println("  delete <path> [recursive]  - Delete file or directory");
             System.err.println("  exists <path>              - Check if path exists");
             System.err.println("  whoami                     - Show current authenticated user");
+            System.err.println(" benchmarkRead <file/directory-path> [threadCount] [partialRead] [readLimitBytes] - Benchmark concurrent read");
             System.exit(1);
         }
 
@@ -48,6 +49,9 @@ public class HdfsClientApp {
                 case "whoami":
                     whoamiOperation();
                     break;
+                case "benchmarkRead":
+                    benchmarkHdfsConcurrentRead(hdfsClient, args);
+                    break;    
                 default:
                     System.err.println("Unknown operation: " + operation);
                     System.exit(1);
@@ -91,6 +95,22 @@ public class HdfsClientApp {
         
         String filePath = args[2];
         hdfsClient.readFile(filePath);
+    }
+    
+    private static void benchmarkHdfsConcurrentRead(HdfsClient hdfsClient, String[] args) throws IOException, InterruptedException {
+        if (args.length < 3) {
+            System.err.println("Missing file path for benchmark operation");
+            System.exit(1);
+        }
+        
+        String filePath = args[2];
+        int threadCount = args.length > 3 ? Integer.parseInt(args[3]) : 1;
+        
+        boolean partialRead = args.length > 4 && Boolean.parseBoolean(args[4]);
+        
+        long readLimitBytes = args.length > 5 ? Integer.parseInt(args[5]) : 65536;
+        
+        hdfsClient.benchmarkConcurrentRead(filePath, threadCount, partialRead, readLimitBytes);
     }
 
     private static void writeOperation(HdfsClient hdfsClient, String[] args) throws IOException {
