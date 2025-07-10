@@ -60,54 +60,54 @@ Run the application using the following command:
 
 ### Examples
 
-1. List files in the root directory:
+#### 1. List files in the root directory:
 
 ```bash
 ./run.sh hdfs://localhost:9000 list /
 ```
 
-2. Read file content:
+#### 2. Read file content:
 
 ```bash
 ./run.sh hdfs://localhost:9000 read /path/to/file.txt
 ```
 
-3. Write content to a file:
+#### 3. Write content to a file:
 
 ```bash
 ./run.sh hdfs://localhost:9000 write /path/to/file.txt "Hello, HDFS!" true
 ```
 The last parameter `true` indicates whether to overwrite existing files.
 
-4. Create a directory:
+#### 4. Create a directory:
 
 ```bash
 ./run.sh hdfs://localhost:9000 mkdir /path/to/new/directory
 ```
 
-5. Delete a file or directory:
+#### 5. Delete a file or directory:
 
 ```bash
 ./run.sh hdfs://localhost:9000 delete /path/to/delete true
 ```
 The last parameter `true` indicates whether to recursively delete directories.
 
-6. Check if a path exists:
+#### 6. Check if a path exists:
 
 ```bash
 ./run.sh hdfs://localhost:9000 exists /path/to/check
 ```
 
-7. Benchmark read performance:
+#### 7. Benchmark read performance:
    You can use the `benchmarkRead` command to test the read performance of a file or directory using multiple threads.
 
-### 🔧 Usage
+Usage
 
 ```bash
 ./run.sh benchmarkRead <path> <threads>
 ```
 
-### 📌 Parameters
+Parameters
 
 - **`<path>`**:  
   Path to the file or directory to read.  
@@ -121,7 +121,7 @@ The last parameter `true` indicates whether to recursively delete directories.
 > - If `<path>` is a file, each thread will repeatedly read the same file.
 > - If `<path>` is a directory, each thread will read all files in that directory.
 
-### 📎 Example
+ Example
 
 Read the file `/path/to/file.orc` using 20 threads:
 
