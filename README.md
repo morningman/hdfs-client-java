@@ -126,7 +126,7 @@ Parameters
 Read the file `/path/to/file.orc` using 20 threads:
 
 ```bash
-./run.sh benchmarkRead hdfs://localhost:9000/path/to/file.orc 20
+./run.sh hdfs://localhost:9000 benchmarkRead hdfs://localhost:9000/path/to/file.orc 20
 ```
 
 
