@@ -9,10 +9,15 @@ import org.apache.hadoop.security.UserGroupInformation;
 import java.io.*;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Utility class for HDFS file operations
@@ -79,7 +84,6 @@ public class HdfsClient implements AutoCloseable {
         // Set HDFS URI (if the URI specified from command line is different from the one in config files, override it)
         configuration.set("fs.defaultFS", hdfsUri);
         System.out.println("Setting fs.defaultFS to: " + hdfsUri);
-        
         // Get file system
         this.fileSystem = FileSystem.get(configuration);
         System.out.println("HDFS client initialized with URI: " + hdfsUri + 
@@ -364,6 +368,89 @@ public class HdfsClient implements AutoCloseable {
         
         long endTime = System.currentTimeMillis();
         System.out.println("writeFile operation completed in " + (endTime - startTime) + " ms");
+    }
+    
+    public void benchmarkConcurrentRead(String path, int threadCount,boolean partialRead, long readLimitBytes) throws InterruptedException, IOException {
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        AtomicLong totalBytes = new AtomicLong();
+        AtomicInteger totalFiles = new AtomicInteger();
+        AtomicInteger failedFiles = new AtomicInteger();
+
+        List<Path> allFiles = listAllFiles(new Path(path));
+        
+        allFiles.forEach(file -> System.out.println("Found file: " + file));
+        
+        Set<String> result = new HashSet<>();
+
+        for (int i = 0; i < threadCount; i++) {
+            int index = i;
+            executor.submit(() -> {
+                try {
+                    long threadStart = System.currentTimeMillis();
+                    long threadBytes = 0;
+                    int threadFiles = 0;
+                    int threadFailures = 0;
+
+                    for (Path file : allFiles) {
+                        long fileStart = System.currentTimeMillis();
+                        try (FSDataInputStream in = fileSystem.open(file);
+                             BufferedInputStream bis = new BufferedInputStream(in)) {
+
+                            byte[] buffer = new byte[8192];
+                            int bytesRead, readSoFar = 0;
+                            while ((bytesRead = bis.read(buffer)) != -1) {
+                                threadBytes += bytesRead;
+                                readSoFar += bytesRead;
+                                if (partialRead && readSoFar >= readLimitBytes) break;
+                            }
+
+                            long fileCost = System.currentTimeMillis() - fileStart;
+                            System.out.printf("Thread %d read file %s: %d bytes in %d ms%n",
+                                    index, file, readSoFar, fileCost);
+                            threadFiles++;
+
+                        } catch (IOException e) {
+                            System.err.printf("Thread %d failed to read file %s: %s%n",
+                                    index, file, e.getMessage());
+                            threadFailures++;
+                        }
+                    }
+
+                    long threadCost = System.currentTimeMillis() - threadStart;
+                    result.add(String.format("Thread %d done: %d files, %d bytes, %d failures, total time %d ms%n",
+                            index, threadFiles, threadBytes, threadFailures, threadCost));
+
+                    totalBytes.addAndGet(threadBytes);
+                    totalFiles.addAndGet(threadFiles);
+                    failedFiles.addAndGet(threadFailures);
+
+                } catch (Exception e) {
+                    System.err.printf("Thread %d failed to init FileSystem: %s%n", index, e.getMessage());
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executor.shutdown();
+        System.out.println("All threads completed. Results:");
+        result.forEach(System.out::println);
+
+        System.out.printf("TOTAL: %d files, %d bytes read, %d failed%n",
+                totalFiles.get(), totalBytes.get(), failedFiles.get());
+    }
+    public  List<Path> listAllFiles(Path root) throws IOException {
+        List<Path> result = new ArrayList<>();
+        RemoteIterator<LocatedFileStatus> iter = fileSystem.listFiles(root, true);
+        while (iter.hasNext()) {
+            LocatedFileStatus status = iter.next();
+            if (status.isFile()) {
+                result.add(status.getPath());
+            }
+        }
+        return result;
     }
     
     /**
